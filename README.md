@@ -61,10 +61,12 @@
 - **RESTful API** architecture
 
 ---
+## 📁 Folder Structure
+
 FoodExpress/
-├── frontend/           # React + Vite client
-├── backend/            # Node.js + Express API
-├── .env                # Backend environment variables
+├── frontend/ # React + Vite client
+├── backend/ # Node.js + Express API
+├── .env # Backend environment variables
 ├── .gitignore
 ├── README.md
 ├── package.json
