@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://i.ibb.co/dtDGYr0/food-delivery.png" alt="FoodExpress Logo" width="120" />
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG6edcHS69ZxImgiIzLmaGq3b3q3zTOlLkiQ&s" alt="FoodExpress Logo" width="120" />
   <br>
   FoodExpress – Full-Stack Food Delivery App
   <br>
