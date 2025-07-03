@@ -1,4 +1,9 @@
-
+<h1 align="center">
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG6edcHS69ZxImgiIzLmaGq3b3q3zTOlLkiQ&s" alt="FoodExpress Logo" width="120" />
+  <br>
+  FoodExpress – Full-Stack Food Delivery App
+  <br>
+</h1>
 
 <p align="center">
   A modern food delivery application built using React, TypeScript, Node.js, and MongoDB. Features include user authentication, restaurant listings, order tracking, and real-time updates.
