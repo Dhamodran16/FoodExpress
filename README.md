@@ -61,7 +61,6 @@
 - **RESTful API** architecture
 
 ---
-
 ## 📁 Folder Structure
 
 FoodExpress/
@@ -81,12 +80,12 @@ Edit
 
 ## ⚙️ Installation
 
-1. **Clone the Repository**
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/Dhamodran16/FoodExpress.git
 cd FoodExpress
-Install Dependencies
-
+2. Install Dependencies
 bash
 Copy
 Edit
@@ -97,9 +96,8 @@ npm install
 # Backend
 cd ../backend
 npm install
-Setup Environment Variables
-
-Create .env files for both frontend and backend:
+3. Setup Environment Variables
+Create .env files for both frontend and backend.
 
 backend/.env
 env
@@ -125,17 +123,16 @@ npm run dev
 cd ../frontend
 npm run dev
 App will run on:
-
 Frontend: http://localhost:5173/
 
 Backend: http://localhost:5000/api
 
 🌍 Deployment
-Live Demo: https://foodexpress-0djs.onrender.com/home
+🔗 Live Demo: https://foodexpress-0djs.onrender.com/home
 
-Frontend: deployed as static site
+Frontend: Deployed as a static site
 
-Backend: deployed as serverless functions on Render
+Backend: Deployed as serverless functions on Render
 
 👨‍💻 Author
 Made with 💻 by Dhamodran16
