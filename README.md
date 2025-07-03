@@ -141,7 +141,7 @@ npm run dev
 
 ## 🌍 Deployment
 
-* 🔗 **Live Demo**: [https://foodexpress-0djs.onrender.com/home](https://foodexpress-0djs.onrender.com)
+* 🔗 **Live Demo**: [https://foodexpress-0djs.onrender.com](https://foodexpress-0djs.onrender.com)
 * **Frontend**: Deployed as static site
 * **Backend**: Deployed as serverless functions on Render
 
