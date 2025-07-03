@@ -182,7 +182,7 @@ npm run dev
 
 ## 👨‍💼 Author
 
-Made with 💻 by [Dhamodran16](https://github.com/Dhamodran16)
+Made with 💻 by [Dhamodran](https://github.com/Dhamodran16)
 
 <p align="center">
   <sub>Feel free to ⭐ this repo if you find it useful!</sub>
