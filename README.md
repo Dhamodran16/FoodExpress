@@ -1,42 +1,4 @@
-<h1 align="center">
-  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG6edcHS69ZxImgiIzLmaGq3b3q3zTOlLkiQ&s" alt="FoodExpress Logo" width="120" />
-  <br>
-  FoodExpress – Full-Stack Food Delivery App
-  <br>
-</h1>
 
-<p align="center">
-  A modern food delivery application built using React, TypeScript, Node.js, and MongoDB. Features include user authentication, restaurant listings, order tracking, and real-time updates.
-</p>
-
-<p align="center">
-  <a href="https://www.typescriptlang.org/">
-    <img src="https://img.shields.io/badge/TypeScript-4.x-blue.svg?style=flat-square" alt="TypeScript Version">
-  </a>
-  <a href="https://reactjs.org/">
-    <img src="https://img.shields.io/badge/React-18.x-blue.svg?style=flat-square" alt="React Version">
-  </a>
-  <a href="https://expressjs.com/">
-    <img src="https://img.shields.io/badge/Express-4.x-black.svg?style=flat-square" alt="Express Version">
-  </a>
-  <a href="https://www.mongodb.com/">
-    <img src="https://img.shields.io/badge/MongoDB-6.x-green.svg?style=flat-square" alt="MongoDB Version">
-  </a>
-  <a href="https://tailwindcss.com/">
-    <img src="https://img.shields.io/badge/TailwindCSS-3.x-cyan.svg?style=flat-square" alt="Tailwind Version">
-  </a>
-  <a href="https://github.com/Dhamodran16/FoodExpress/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/Dhamodran16/FoodExpress?style=flat-square" alt="License">
-  </a>
-</p>
-
----
-<h1 align="center">
-  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG6edcHS69ZxImgiIzLmaGq3b3q3zTOlLkiQ&s" alt="FoodExpress Logo" width="120" />
-  <br>
-  FoodExpress – Full-Stack Food Delivery App
-  <br>
-</h1>
 
 <p align="center">
   A modern food delivery application built using React, TypeScript, Node.js, and MongoDB. Features include user authentication, restaurant listings, order tracking, and real-time updates.
