@@ -12,7 +12,11 @@ const OrderSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   items: { type: [OrderItemSchema], required: true },
   total: { type: Number, required: true },
-  status: { type: String, default: 'processing' },
+  status: { 
+    type: String, 
+    default: 'processing',
+    enum: ['pending', 'processing', 'preparing', 'outForDelivery', 'delivered', 'completed', 'cancelled']
+  },
   orderNumber: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now },
   paymentMethod: { 

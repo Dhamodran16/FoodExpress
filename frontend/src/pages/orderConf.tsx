@@ -4,8 +4,9 @@ import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getAuth } from 'firebase/auth';
+import { formatCurrency, DELIVERY_FEE, TAX_RATE } from '../utils/currency';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
 function generateOrderNumber() {
   const randomNum = Math.floor(10000 + Math.random() * 90000);
@@ -54,8 +55,8 @@ const OrderConf: React.FC = () => {
 
   // Calculate cart totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 3.99;
-  const tax = subtotal * 0.08;
+  const deliveryFee = DELIVERY_FEE;
+  const tax = subtotal * TAX_RATE; // 18% GST (Indian tax rate)
   const total = subtotal + deliveryFee + tax;
 
   // Format credit card number with spaces
@@ -324,7 +325,7 @@ const OrderConf: React.FC = () => {
                       <p className="text-gray-500 text-xs">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-gray-800 font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-gray-800 font-medium">{formatCurrency(item.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))
@@ -616,7 +617,7 @@ const OrderConf: React.FC = () => {
                         <p className="text-gray-500 text-xs">{item.restaurantName}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-gray-800 font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-gray-800 font-medium">{formatCurrency(item.price * item.quantity)}</p>
                         <p className="text-gray-500 text-xs">Qty: {item.quantity}</p>
                       </div>
                     </div>
@@ -627,20 +628,20 @@ const OrderConf: React.FC = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-800">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-800">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
-                  <span className="text-gray-800">${deliveryFee.toFixed(2)}</span>
+                  <span className="text-gray-800">{formatCurrency(deliveryFee)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-800">${tax.toFixed(2)}</span>
+                  <span className="text-gray-600">Tax (GST 18%)</span>
+                  <span className="text-gray-800">{formatCurrency(tax)}</span>
                 </div>
                 <div className="border-t pt-3 mt-2">
                   <div className="flex justify-between font-semibold">
                     <span className="text-gray-800">Total</span>
-                    <span className="text-xl text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-xl text-gray-900">{formatCurrency(total)}</span>
                   </div>
                 </div>
               </div>

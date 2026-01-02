@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
+import { formatCurrency } from '../utils/currency';
 
 // Added a placeholder for useAuthGuard
 const useAuthGuard = () => {
   // Placeholder logic for authentication guard
-};
-
-// Defined missing variables
-const items: OrderItem[] = []; // Example cart items array
-const subtotal = 0; // Example subtotal
-const deliveryFee = 0; // Example delivery fee
-const tax = 0; // Example tax
-const paymentMethod = 'credit'; // Example payment method
-const clearCart = () => {
-  console.log('Cart cleared');
 };
 
 interface OrderItem {
@@ -70,45 +61,29 @@ const OrderHistory: React.FC = () => {
     fetchOrders();
   }, []);
 
-  const handlePlaceOrder = async () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) {
-      // Redirect to login or show error
-      // navigate('/signin');
-      return;
+  // Helper function to get status badge styling
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'delivered':
+      case 'completed':
+        return 'bg-green-100 text-green-700';
+      case 'processing':
+      case 'preparing':
+        return 'bg-blue-100 text-blue-700';
+      case 'outForDelivery':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
+      case 'pending':
+        return 'bg-gray-100 text-gray-700';
+      default:
+        return 'bg-gray-200 text-gray-700';
     }
-
-    // Gather order data
-    const orderData = {
-      userId: user.uid,
-      items: items, // your cart items array from context or state
-      total: subtotal + deliveryFee + tax, // or your total calculation
-      status: 'delivered', // or 'processing', etc.
-      deliveryAddress: "123 Main Street, Erode, 638052",
-      paymentMethod: paymentMethod, // e.g., 'credit', 'cash', etc.
-      createdAt: new Date().toISOString(),
-    };
-
-    try {
-      const res = await fetch(`${API_URL}/api/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-      });
-
-      if (res.ok) {
-        // Success: clear cart, show confirmation, navigate, etc.
-        clearCart();
-        navigate('/order-placed');
-      } else {
-        // Handle error
-        const err = await res.json();
-        alert('Order failed: ' + (err.error || 'Unknown error'));
-      }
-    } catch (err) {
-      alert('Order failed: ' + err);
-    }
+  };
+  
+  // Helper function to format status display
+  const formatStatus = (status: string) => {
+    return status.replace(/([A-Z])/g, ' $1').trim().replace(/^\w/, c => c.toUpperCase());
   };
 
   return (
@@ -142,9 +117,11 @@ const OrderHistory: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <div>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${order.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>{order.status}</span>
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(order.status)}`}>
+                      {formatStatus(order.status)}
+                    </span>
                   </div>
-                  <div className="text-lg font-bold text-gray-800">${order.total.toFixed(2)}</div>
+                  <div className="text-lg font-bold text-gray-800">{formatCurrency(order.total)}</div>
                 </div>
                 <button
                   onClick={() => navigate(`/cart-details/${order._id}`)}

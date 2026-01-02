@@ -40,9 +40,11 @@ interface MenuItem {
   isAvailable: boolean;
 }
 
+import { getCurrentLocation, formatLocationString } from '../utils/geolocation';
+
 const Index: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [location, setLocation] = useState('Erode, 638052');
+  const [location, setLocation] = useState('Loading location...');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const [sortOption, setSortOption] = useState('Rating');
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,6 +169,31 @@ const Index: React.FC = () => {
   };
 
   useEffect(() => {
+    // Get current location on component mount
+    const fetchLocation = async () => {
+      console.log('🔄 Fetching current location...');
+      try {
+        const locationData = await getCurrentLocation();
+        const formatted = formatLocationString(locationData);
+        console.log('✅ Setting location to:', formatted);
+        
+        // Also log coordinates for debugging
+        if (locationData.coordinates) {
+          console.log('📍 Coordinates:', locationData.coordinates);
+          console.log('🔗 Google Maps:', `https://www.google.com/maps?q=${locationData.coordinates.latitude},${locationData.coordinates.longitude}`);
+        }
+        
+        setLocation(formatted);
+      } catch (error) {
+        console.error('❌ Failed to get location:', error);
+        setLocation('Erode, 638052'); // Fallback
+      }
+    };
+    
+    fetchLocation();
+  }, []);
+
+  useEffect(() => {
     if (isLoggedIn) {
       navigate('/home');
     }
@@ -215,7 +242,35 @@ const Index: React.FC = () => {
           {/* Location Selector */}
           <div className="hidden md:flex items-center mx-4 text-gray-700">
             <i className="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-            <span className="text-sm">{location}</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">{location}</span>
+              <button
+                onClick={async () => {
+                  console.log('🔄 Refreshing location...');
+                  setLocation('Loading location...');
+                  try {
+                    // Force a fresh location by clearing any potential cache
+                    const locationData = await getCurrentLocation();
+                    const formatted = formatLocationString(locationData);
+                    console.log('✅ New location:', formatted);
+                    
+                    if (locationData.coordinates) {
+                      console.log('📍 New coordinates:', locationData.coordinates);
+                      console.log('🔗 Verify: https://www.google.com/maps?q=' + locationData.coordinates.latitude + ',' + locationData.coordinates.longitude);
+                    }
+                    
+                    setLocation(formatted);
+                  } catch (error) {
+                    console.error('❌ Failed to get location:', error);
+                    setLocation('Erode, 638052');
+                  }
+                }}
+                className="text-orange-600 hover:text-orange-800 text-xs ml-1"
+                title="Refresh location (forces fresh GPS reading)"
+              >
+                <i className="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
 
           {/* Search Bar */}
@@ -611,7 +666,7 @@ const Index: React.FC = () => {
               <ul className="space-y-2 text-gray-400">
                 <li className="flex items-start">
                   <i className="fas fa-map-marker-alt mt-1 mr-2"></i>
-                  <span>123 Food Street, Erode, 638052</span>
+                  <span>{location}</span>
                 </li>
                 <li className="flex items-center">
                   <i className="fas fa-phone-alt mr-2"></i>

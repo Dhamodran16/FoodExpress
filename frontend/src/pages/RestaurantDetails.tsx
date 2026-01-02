@@ -206,7 +206,7 @@ const RestaurantDetails: React.FC = () => {
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-lg">{item.name}</h3>
-                  <span className="text-orange-600 font-bold">${item.price.toFixed(2)}</span>
+                  <span className="text-orange-600 font-bold">₹{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                 <div className="flex items-center text-sm text-gray-500 mb-4">

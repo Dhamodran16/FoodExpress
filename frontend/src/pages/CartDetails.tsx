@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { formatCurrency, DELIVERY_FEE, TAX_RATE } from '../utils/currency';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -14,7 +15,6 @@ const CartDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [itemEstimates, setItemEstimates] = useState<number[]>([]);
   const [averageEstimate, setAverageEstimate] = useState<number>(0);
-  const [statusStep, setStatusStep] = useState<'processing' | 'preparing' | 'outForDelivery' | 'delivered'>('processing');
   const [orderTime, setOrderTime] = useState<Date | null>(null);
 
   function getAverageDeliveryTime(items: any[]) {
@@ -41,33 +41,79 @@ const CartDetails: React.FC = () => {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
     return `ORD-${randomNum}`;
   }
-  // Order details
-  const orderNumber = generateOrderNumber();
+  // Order details - use order.orderNumber if available
+  const orderNumber = order?.orderNumber || generateOrderNumber();
   const estimatedDelivery = "30-45 minutes";
-  const deliveryAddress = {
-    street: '123 Main Street',
-    apt: 'Apt 4B',
-    city: 'San Francisco',
-    state: 'CA',
-    zip: '94105'
-  };
-  const paymentMethod = "Visa •••• 4582";
- 
-  // Calculate cart totals
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 3.99;
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + deliveryFee + tax;
+  
+  // Calculate order totals from order.items if available, otherwise use cart items
+  const orderItems = order?.items || items;
+  const subtotal = orderItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = DELIVERY_FEE;
+  const tax = subtotal * TAX_RATE; // 18% GST (Indian tax rate)
+  const total = order?.total || (subtotal + deliveryFee + tax);
 
   useEffect(() => {
     if (!orderId) return;
-    fetch(`${API_URL}/api/orders/${orderId}`)
-      .then(res => res.json())
-      .then(data => {
+    
+    const updateOrderStatusAutomatically = async (currentOrder: any) => {
+      try {
+        // Call backend endpoint to auto-update status
+        const updateRes = await fetch(`${API_URL}/api/orders/${orderId}/auto-update-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (updateRes.ok) {
+          const updatedOrder = await updateRes.json();
+          // If status changed, update the order state
+          if (updatedOrder.status !== currentOrder.status) {
+            setOrder(updatedOrder);
+            return true; // Status was updated
+          }
+        }
+      } catch (error) {
+        console.error('Error auto-updating order status:', error);
+      }
+      return false; // Status was not updated
+    };
+    
+    const fetchOrder = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/orders/${orderId}`);
+        if (!res.ok) throw new Error('Failed to fetch order');
+        const data = await res.json();
         setOrder(data);
         setLoading(false);
         console.log('Fetched order:', data);
-      });
+        
+        // Auto-update status if order is still in processing/preparing/outForDelivery
+        if (data.status && ['processing', 'preparing', 'outForDelivery'].includes(data.status)) {
+          const wasUpdated = await updateOrderStatusAutomatically(data);
+          // If status was updated, the state is already set, no need to fetch again
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        setLoading(false);
+      }
+    };
+    
+    fetchOrder();
+    
+    // Poll for order status updates every 5 seconds (more frequent for better UX)
+    const pollInterval = setInterval(async () => {
+      const res = await fetch(`${API_URL}/api/orders/${orderId}`);
+      if (res.ok) {
+        const data = await res.json();
+        // Auto-update status on each poll if needed
+        if (data.status && ['processing', 'preparing', 'outForDelivery'].includes(data.status)) {
+          await updateOrderStatusAutomatically(data);
+        } else {
+          // Just update the order state
+          setOrder(data);
+        }
+      }
+    }, 5000);
+    
+    return () => clearInterval(pollInterval);
   }, [orderId]);
 
   // Assign random estimated times to each item (25-30 min)
@@ -82,18 +128,32 @@ const CartDetails: React.FC = () => {
     }
   }, [order]);
 
-  // Update status based on time
-  useEffect(() => {
-    if (!orderTime || !averageEstimate) return;
-    const now = new Date();
-    const prepEnd = new Date(orderTime.getTime() + (averageEstimate * 0.4) * 60000); // 40% prep
-    const deliveryEnd = new Date(orderTime.getTime() + (averageEstimate * 0.8) * 60000); // 80% out for delivery
-    const deliveredEnd = new Date(orderTime.getTime() + averageEstimate * 60000);
-    if (now < prepEnd) setStatusStep('preparing');
-    else if (now < deliveryEnd) setStatusStep('outForDelivery');
-    else if (now < deliveredEnd) setStatusStep('outForDelivery');
-    else setStatusStep('delivered');
-  }, [orderTime, averageEstimate]);
+  // Get current status from order, with fallback logic for time-based progression if status hasn't been updated
+  const getCurrentStatus = (): 'processing' | 'preparing' | 'outForDelivery' | 'delivered' => {
+    if (!order) return 'processing';
+    
+    // Use backend status if it's one of our display statuses
+    if (['processing', 'preparing', 'outForDelivery', 'delivered'].includes(order.status)) {
+      return order.status as 'processing' | 'preparing' | 'outForDelivery' | 'delivered';
+    }
+    
+    // Fallback: Calculate status based on time if backend status is generic
+    if (orderTime && averageEstimate) {
+      const now = new Date();
+      const prepEnd = new Date(orderTime.getTime() + (averageEstimate * 0.4) * 60000);
+      const deliveryEnd = new Date(orderTime.getTime() + (averageEstimate * 0.8) * 60000);
+      const deliveredEnd = new Date(orderTime.getTime() + averageEstimate * 60000);
+      
+      if (now < prepEnd) return 'preparing';
+      if (now < deliveryEnd) return 'outForDelivery';
+      if (now < deliveredEnd) return 'outForDelivery';
+      return 'delivered';
+    }
+    
+    return 'processing';
+  };
+  
+  const currentStatus = getCurrentStatus();
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -252,7 +312,7 @@ const CartDetails: React.FC = () => {
                         <div className="flex-grow">
                           <div className="flex justify-between">
                             <p className="text-gray-800 font-medium">{item.name}</p>
-                            <p className="text-gray-800 font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-gray-800 font-medium">{formatCurrency(item.price * item.quantity)}</p>
                           </div>
                           <p className="text-gray-600 text-sm">{item.restaurantName}</p>
                           {item.customization && (
@@ -290,23 +350,39 @@ const CartDetails: React.FC = () => {
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                  
                   <div className="relative flex items-start mb-6">
-                        <div className="flex-shrink-0 mr-4">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center z-10 relative">
-                        <i className="fas fa-check text-white text-sm"></i>
-                          </div>
-                        </div>
-                        <div>
-                      <p className="font-medium text-gray-800">{statusStep}</p>
+                    <div className="flex-shrink-0 mr-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
+                        currentStatus === 'processing' ? 'bg-indigo-600' :
+                        currentStatus === 'preparing' ? 'bg-yellow-500' :
+                        currentStatus === 'outForDelivery' ? 'bg-blue-500' :
+                        'bg-green-500'
+                      }`}>
+                        <i className={`fas ${
+                          currentStatus === 'processing' ? 'fa-clock' :
+                          currentStatus === 'preparing' ? 'fa-utensils' :
+                          currentStatus === 'outForDelivery' ? 'fa-motorcycle' :
+                          'fa-check'
+                        } text-white text-sm`}></i>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800 capitalize">{currentStatus.replace(/([A-Z])/g, ' $1').trim()}</p>
                       <p className="text-sm text-gray-600">
                         {orderTime ? orderTime.toLocaleString() : 'Loading...'}
                       </p>
                     </div>
-                        </div>
+                  </div>
                  
                   <div className="relative flex items-start mb-6">
                     <div className="flex-shrink-0 mr-4">
-                      <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center z-10 relative">
-                        <i className="fas fa-utensils text-indigo-600 text-sm"></i>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
+                        ['preparing', 'outForDelivery', 'delivered'].includes(currentStatus) 
+                          ? 'bg-indigo-600' : 'bg-indigo-100'
+                      }`}>
+                        <i className={`fas fa-utensils text-sm ${
+                          ['preparing', 'outForDelivery', 'delivered'].includes(currentStatus)
+                            ? 'text-white' : 'text-indigo-600'
+                        }`}></i>
                       </div>
                     </div>
                     <div>
@@ -317,8 +393,14 @@ const CartDetails: React.FC = () => {
                  
                   <div className="relative flex items-start mb-6">
                     <div className="flex-shrink-0 mr-4">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center z-10 relative">
-                        <i className="fas fa-motorcycle text-gray-500 text-sm"></i>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
+                        ['outForDelivery', 'delivered'].includes(currentStatus)
+                          ? 'bg-blue-500' : 'bg-gray-200'
+                      }`}>
+                        <i className={`fas fa-motorcycle text-sm ${
+                          ['outForDelivery', 'delivered'].includes(currentStatus)
+                            ? 'text-white' : 'text-gray-500'
+                        }`}></i>
                       </div>
                     </div>
                     <div>
@@ -329,8 +411,12 @@ const CartDetails: React.FC = () => {
                  
                   <div className="relative flex items-start">
                     <div className="flex-shrink-0 mr-4">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center z-10 relative">
-                        <i className="fas fa-home text-gray-500 text-sm"></i>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
+                        currentStatus === 'delivered' ? 'bg-green-500' : 'bg-gray-200'
+                      }`}>
+                        <i className={`fas fa-home text-sm ${
+                          currentStatus === 'delivered' ? 'text-white' : 'text-gray-500'
+                        }`}></i>
                       </div>
                     </div>
                     <div>
@@ -352,20 +438,20 @@ const CartDetails: React.FC = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-800">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-800">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
-                  <span className="text-gray-800">${deliveryFee.toFixed(2)}</span>
+                  <span className="text-gray-800">{formatCurrency(deliveryFee)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-800">${tax.toFixed(2)}</span>
+                  <span className="text-gray-600">Tax (GST 18%)</span>
+                  <span className="text-gray-800">{formatCurrency(tax)}</span>
                 </div>
                 <div className="border-t pt-3 mt-2">
                   <div className="flex justify-between font-semibold">
                     <span className="text-gray-800">Total</span>
-                    <span className="text-xl text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-xl text-gray-900">{formatCurrency(total)}</span>
                   </div>
                 </div>
               </div>

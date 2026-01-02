@@ -9,14 +9,17 @@ const router = express.Router();
 const validateOrder = [
   body('userId').isMongoId().withMessage('Invalid user ID'),
   body('items').isArray().withMessage('Items must be an array'),
-  body('items.*.menuItemId').isMongoId().withMessage('Invalid menu item ID'),
+  body('items.*.menuItemId').optional().isMongoId().withMessage('Invalid menu item ID'),
+  body('items.*.name').notEmpty().withMessage('Item name is required'),
+  body('items.*.price').isFloat({ min: 0 }).withMessage('Item price must be a positive number'),
   body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
+  body('items.*.restaurantName').notEmpty().withMessage('Restaurant name is required'),
   body('total').isFloat({ min: 0 }).withMessage('Total amount must be a positive number'),
   validateRequest
 ];
 
 // Get all orders
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const orders = await Order.find().populate('userId', 'name email');
     res.json(orders);
@@ -50,16 +53,6 @@ router.get('/firebase/:firebaseUid', async (req, res, next) => {
   }
 });
 
-// Get all orders for a user (by firebaseUid)
-router.get('/user/:firebaseUid', async (req, res, next) => {
-  try {
-    const orders = await Order.find({ userId: req.params.firebaseUid }).sort({ createdAt: -1 });
-    res.json(orders);
-  } catch (err) {
-    next(err);
-  }
-});
-
 // Get a single order by ID
 router.get('/:orderId', async (req, res, next) => {
   try {
@@ -83,10 +76,55 @@ router.post('/', validateOrder, async (req, res, next) => {
   }
 });
 
+// Auto-update order status based on time elapsed
+router.post('/:id/auto-update-status', async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Only auto-update if order is in a progressing state
+    if (!['processing', 'preparing', 'outForDelivery'].includes(order.status)) {
+      return res.json(order);
+    }
+
+    const orderTime = new Date(order.createdAt);
+    const now = new Date();
+    const elapsedMinutes = (now.getTime() - orderTime.getTime()) / (1000 * 60);
+
+    let newStatus = order.status;
+
+    // Auto-progress status based on time elapsed
+    // processing -> preparing (after 1 minute for faster progression)
+    if (order.status === 'processing' && elapsedMinutes >= 1) {
+      newStatus = 'preparing';
+    }
+    // preparing -> outForDelivery (after 5 minutes from order creation)
+    else if (order.status === 'preparing' && elapsedMinutes >= 5) {
+      newStatus = 'outForDelivery';
+    }
+    // outForDelivery -> delivered (after 15 minutes from order creation)
+    else if (order.status === 'outForDelivery' && elapsedMinutes >= 15) {
+      newStatus = 'delivered';
+    }
+
+    // Update status if it changed
+    if (newStatus !== order.status) {
+      order.status = newStatus;
+      await order.save();
+    }
+
+    res.json(order);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Update order status
 router.patch('/:id',
   param('id').isMongoId().withMessage('Invalid order ID'),
-  body('status').isIn(['pending', 'processing', 'completed', 'cancelled'])
+  body('status').isIn(['pending', 'processing', 'preparing', 'outForDelivery', 'delivered', 'completed', 'cancelled'])
     .withMessage('Invalid status'),
   validateRequest,
   async (req, res, next) => {

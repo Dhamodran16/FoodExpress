@@ -2,6 +2,7 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency, DELIVERY_FEE, TAX_RATE } from '../utils/currency';
 
 const BuyFood: React.FC = () => {
   const { items, updateQuantity, removeItem, getTotalPrice, clearCart } = useCart();
@@ -38,8 +39,8 @@ const BuyFood: React.FC = () => {
 
   // Calculate cart totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 3.99;
-  const tax = subtotal * 0.08;
+  const deliveryFee = DELIVERY_FEE;
+  const tax = subtotal * TAX_RATE; // 18% GST (Indian tax rate)
   const discountAmount = (subtotal * discount) / 100;
   const total = subtotal + deliveryFee + tax - discountAmount;
 
@@ -121,7 +122,7 @@ const BuyFood: React.FC = () => {
                               </button>
                             </div>
                             <div className="text-right mt-2">
-                              <p className="font-medium text-gray-800">${(item.price * item.quantity).toFixed(2)}</p>
+                              <p className="font-medium text-gray-800">{formatCurrency(item.price * item.quantity)}</p>
                               <button
                                 onClick={() => handleRemoveItem(item.id)}
                                 className="text-red-500 text-sm hover:text-red-700 mt-1 cursor-pointer whitespace-nowrap"
@@ -145,26 +146,26 @@ const BuyFood: React.FC = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-800">${subtotal.toFixed(2)}</span>
+                    <span className="text-gray-800">{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Delivery Fee</span>
-                    <span className="text-gray-800">${deliveryFee.toFixed(2)}</span>
+                    <span className="text-gray-800">{formatCurrency(deliveryFee)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-800">${tax.toFixed(2)}</span>
+                    <span className="text-gray-600">Tax (GST 18%)</span>
+                    <span className="text-gray-800">{formatCurrency(tax)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount ({discount}%)</span>
-                      <span>-${discountAmount.toFixed(2)}</span>
+                      <span>-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
                   <div className="border-t pt-4 mt-2">
                     <div className="flex justify-between font-semibold">
                       <span className="text-gray-800">Total</span>
-                      <span className="text-xl text-gray-900">${total.toFixed(2)}</span>
+                      <span className="text-xl text-gray-900">{formatCurrency(total)}</span>
                     </div>
                   </div>
                 </div>

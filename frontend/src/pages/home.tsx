@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CartIcon from '../components/CartIcon';
 import { useCart } from '../context/CartContext';
 import { getAuth } from 'firebase/auth';
+import { getCurrentLocation, formatLocationString } from '../utils/geolocation';
 
 interface Restaurant {
   _id: string;
@@ -43,7 +44,7 @@ interface MenuItem {
 
 const RestaurantMenu: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [location] = useState('Erode, 638052');
+  const [location, setLocation] = useState('Loading location...');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const [sortOption, setSortOption] = useState('Rating');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +63,31 @@ const RestaurantMenu: React.FC = () => {
   
   // Sort options
   const sortOptions = ['Rating', 'Delivery Time', 'Distance', 'Price: Low to High', 'Price: High to Low'];
+
+  useEffect(() => {
+    // Get current location on component mount
+    const fetchLocation = async () => {
+      console.log('🔄 Fetching current location...');
+      try {
+        const locationData = await getCurrentLocation();
+        const formatted = formatLocationString(locationData);
+        console.log('✅ Setting location to:', formatted);
+        
+        // Also log coordinates for debugging
+        if (locationData.coordinates) {
+          console.log('📍 Coordinates:', locationData.coordinates);
+          console.log('🔗 Google Maps:', `https://www.google.com/maps?q=${locationData.coordinates.latitude},${locationData.coordinates.longitude}`);
+        }
+        
+        setLocation(formatted);
+      } catch (error) {
+        console.error('❌ Failed to get location:', error);
+        setLocation('Erode, 638052'); // Fallback
+      }
+    };
+    
+    fetchLocation();
+  }, []);
 
   // Fetch restaurants and menu items from MongoDB
   useEffect(() => {
@@ -237,7 +263,28 @@ const RestaurantMenu: React.FC = () => {
           {/* Location Selector */}
           <div className="hidden md:flex items-center mx-4 text-gray-700">
             <i className="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-            <span className="text-sm">{location}</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">{location}</span>
+              <button
+                onClick={async () => {
+                  console.log('Refreshing location...');
+                  setLocation('Loading location...');
+                  try {
+                    const locationData = await getCurrentLocation();
+                    const formatted = formatLocationString(locationData);
+                    console.log('New location:', formatted);
+                    setLocation(formatted);
+                  } catch (error) {
+                    console.error('Failed to get location:', error);
+                    setLocation('Erode, 638052');
+                  }
+                }}
+                className="text-orange-600 hover:text-orange-800 text-xs ml-1"
+                title="Refresh location"
+              >
+                <i className="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
 
           {/* Search Bar */}

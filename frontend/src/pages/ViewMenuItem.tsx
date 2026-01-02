@@ -163,7 +163,7 @@ const ViewMenuItem: React.FC = () => {
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Item Details</h2>
                 <p className="text-gray-600">Category: {menuItem.category}</p>
-                <p className="text-gray-600">Price: ₹{menuItem.price.toFixed(2)}</p>
+                <p className="text-gray-600">Price: ₹{menuItem.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <p className="text-gray-600">Vegetarian: {menuItem.isVegetarian ? 'Yes' : 'No'}</p>
                 <p className="text-gray-600">Spicy: {menuItem.isSpicy ? 'Yes' : 'No'}</p>
               </div>
