@@ -27,6 +27,23 @@ export default defineConfig({
       }
     }
   },
+  preview: {
+    port: 4173,
+    strictPort: false
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'esbuild', // Use esbuild instead of terser (faster and no extra dependency)
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['react-hot-toast', 'react-toastify', 'react-icons']
+        }
+      }
+    }
+  },
   optimizeDeps: {
     include: ['react', 'react-dom']
   },
