@@ -5,13 +5,13 @@ import mongoose from 'mongoose';
 const router = express.Router();
 
 // Get all restaurants
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const restaurants = await Restaurant.find();
     res.json(restaurants);
   } catch (err) {
     console.error('Error fetching restaurants:', err);
-    res.status(500).json({ message: 'Error fetching restaurants' });
+    next(err);
   }
 });
 

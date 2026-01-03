@@ -1,5 +1,5 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.stack || err);
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
@@ -26,8 +26,12 @@ export const errorHandler = (err, req, res, next) => {
     return res.status(401).json({ message: 'Token expired' });
   }
 
-  // Default error
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error'
+  // Default error - ensure CORS headers are set
+  const status = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  res.status(status).json({
+    message: message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 }; 
