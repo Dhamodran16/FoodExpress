@@ -36,6 +36,7 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild', // Use esbuild instead of terser (faster and no extra dependency)
     rollupOptions: {
+      external: ['mongoose'], // Exclude mongoose from frontend build
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],

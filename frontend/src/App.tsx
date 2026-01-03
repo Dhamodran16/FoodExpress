@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
       setUser(user);
       setLoading(false);
     });
@@ -55,7 +55,7 @@ const PublicRoute = ({ children }: { children: JSX.Element }) => {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
       setUser(user);
       setLoading(false);
     });

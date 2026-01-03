@@ -16,7 +16,7 @@ app.use(express.json());
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI as string)
   .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch(err => console.error('Mongo error', err));
+  .catch((err: any) => console.error('Mongo error', err));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../../dist')));

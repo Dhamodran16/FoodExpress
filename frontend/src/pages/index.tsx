@@ -65,7 +65,7 @@ const Index: React.FC = () => {
   // Check authentication status
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
       setIsLoggedIn(!!user);
       if (user) {
         const displayName = user.displayName || '';

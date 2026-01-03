@@ -128,7 +128,7 @@ const RestaurantMenu: React.FC = () => {
     if (user) {
       console.log(user.uid); // This is the firebaseUid
     }
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged((user: any) => {
       setIsLoggedIn(!!user);
       if (user) {
         if (user.displayName && user.displayName.length > 0) {
