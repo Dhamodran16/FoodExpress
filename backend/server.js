@@ -18,14 +18,17 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
+    // In production, allow the frontend URL
+    // In development, allow localhost ports
     const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL]
+      ? (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : ['https://foodexpress-frontend-tmf7.onrender.com'])
       : ['http://localhost:5173', 'http://localhost:5174'];
 
-    // Allow requests with no origin like mobile apps or curl
+    // Allow requests with no origin (like Postman, mobile apps, or curl)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`CORS: Blocked origin ${origin}. Allowed origins:`, allowedOrigins);
       callback(new Error(`CORS policy violation: Origin ${origin} not allowed`));
     }
   },
@@ -42,8 +45,6 @@ app.use(morgan('dev'));
 
 // MongoDB Connection Options
 const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 };
