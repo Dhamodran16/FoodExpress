@@ -17,20 +17,24 @@ dotenv.config();
 
 const app = express();
 
+// Trust proxy - Required for Render's reverse proxy and rate limiting
+app.set('trust proxy', true);
+
 // CORS configuration - helper function to get allowed origins
 const getAllowedOrigins = () => {
-  // Check if FRONTEND_URL is explicitly set
+  // Check if FRONTEND_URL is explicitly set (highest priority)
   if (process.env.FRONTEND_URL) {
     return process.env.FRONTEND_URL.split(',').map(url => url.trim());
   }
   
-  // If NODE_ENV is production, use production URL
-  if (process.env.NODE_ENV === 'production') {
-    return ['https://foodexpress-frontend-tmf7.onrender.com'];
-  }
+  // Determine if we're in production
+  // Render always sets PORT, and NODE_ENV might be 'production' or undefined
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                       process.env.RENDER === 'true' || 
+                       process.env.RENDER ||
+                       (process.env.PORT && process.env.NODE_ENV !== 'development');
   
-  // If running on Render (has RENDER env var or PORT is set by Render), use production URL
-  if (process.env.RENDER || (process.env.PORT && !process.env.NODE_ENV)) {
+  if (isProduction) {
     return ['https://foodexpress-frontend-tmf7.onrender.com'];
   }
   
@@ -38,10 +42,15 @@ const getAllowedOrigins = () => {
   return ['http://localhost:5173', 'http://localhost:5174'];
 };
 
+// Get allowed origins once at startup
+const allowedOrigins = getAllowedOrigins();
+console.log('🌐 CORS Allowed Origins:', allowedOrigins);
+console.log('🌐 NODE_ENV:', process.env.NODE_ENV);
+console.log('🌐 RENDER:', process.env.RENDER);
+console.log('🌐 PORT:', process.env.PORT);
+
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = getAllowedOrigins();
-    
     // Allow requests with no origin (like Postman, mobile apps, or curl)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -111,7 +120,6 @@ app.use(cors(corsOptions));
 
 // Ensure CORS headers are always set (backup for error cases)
 app.use((req, res, next) => {
-  const allowedOrigins = getAllowedOrigins();
   const origin = req.headers.origin;
   
   if (origin && allowedOrigins.includes(origin)) {
@@ -253,7 +261,6 @@ app.use(errorHandler);
 // 404 handler
 app.use((req, res) => {
   // Set CORS headers for 404 responses
-  const allowedOrigins = getAllowedOrigins();
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);

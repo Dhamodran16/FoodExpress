@@ -1,17 +1,18 @@
 // Helper function to get allowed origins (same logic as server.js)
 const getAllowedOrigins = () => {
-  // Check if FRONTEND_URL is explicitly set
+  // Check if FRONTEND_URL is explicitly set (highest priority)
   if (process.env.FRONTEND_URL) {
     return process.env.FRONTEND_URL.split(',').map(url => url.trim());
   }
   
-  // If NODE_ENV is production, use production URL
-  if (process.env.NODE_ENV === 'production') {
-    return ['https://foodexpress-frontend-tmf7.onrender.com'];
-  }
+  // Determine if we're in production
+  // Render always sets PORT, and NODE_ENV might be 'production' or undefined
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                       process.env.RENDER === 'true' || 
+                       process.env.RENDER ||
+                       (process.env.PORT && process.env.NODE_ENV !== 'development');
   
-  // If running on Render (has RENDER env var or PORT is set by Render), use production URL
-  if (process.env.RENDER || (process.env.PORT && !process.env.NODE_ENV)) {
+  if (isProduction) {
     return ['https://foodexpress-frontend-tmf7.onrender.com'];
   }
   
