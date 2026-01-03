@@ -18,7 +18,9 @@ dotenv.config();
 const app = express();
 
 // Trust proxy - Required for Render's reverse proxy and rate limiting
-app.set('trust proxy', true);
+// Set to 1 to trust only the first proxy (Render's reverse proxy)
+// This is more secure than 'true' which trusts all proxies
+app.set('trust proxy', 1);
 
 // CORS configuration - helper function to get allowed origins
 const getAllowedOrigins = () => {
