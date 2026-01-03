@@ -1,5 +1,5 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAuth, updateProfile, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [, setSelectedImage] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -159,7 +159,9 @@ const Profile: React.FC = () => {
     await handleAddOrEditAddress({ ...addr, isDefault: true }, addr._id || addr.id);
   };
 
-  const handleChangePassword = async () => {
+  // Unused function - password change is handled inline
+  /*
+  const _handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       const errorModal = document.createElement('div');
       errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
@@ -253,6 +255,7 @@ const Profile: React.FC = () => {
       closeButton?.addEventListener('click', () => errorModal.remove());
     }
   };
+  */
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -285,7 +288,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
       setLoading(true);
@@ -305,7 +308,7 @@ const Profile: React.FC = () => {
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
-  const defaultAddress = addresses.find(addr => addr.isDefault);
+  // const defaultAddress = addresses.find(addr => addr.isDefault); // Unused variable
 
   console.log('Profile Data:', profileData);
   console.log('Is Profile Complete:', isProfileComplete());

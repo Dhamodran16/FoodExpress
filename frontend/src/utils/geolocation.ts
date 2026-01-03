@@ -51,7 +51,7 @@ const getAddressFromCoordinates = async (lat: number, lon: number): Promise<Geoc
 };
 
 export const getCurrentLocation = (): Promise<LocationData> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!navigator.geolocation) {
       console.warn('Geolocation is not supported by this browser');
       // Fallback to default location if geolocation is not available

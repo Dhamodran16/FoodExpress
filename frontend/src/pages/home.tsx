@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CartIcon from '../components/CartIcon';
-import { useCart } from '../context/CartContext';
+// import { useCart } from '../context/CartContext'; // Unused - add to cart handled inline
 import { getAuth } from 'firebase/auth';
 import { getCurrentLocation, formatLocationString } from '../utils/geolocation';
 
@@ -50,10 +50,10 @@ const RestaurantMenu: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { addItem } = useCart();
+  // const { addItem } = useCart(); // Unused - add to cart handled inline
   const [userInitial, setUserInitial] = useState('C');
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
@@ -125,7 +125,9 @@ const RestaurantMenu: React.FC = () => {
   useEffect(() => {
     const auth = getAuth();
     const user = auth.currentUser;
-    console.log(user.uid); // This is the firebaseUid
+    if (user) {
+      console.log(user.uid); // This is the firebaseUid
+    }
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setIsLoggedIn(!!user);
       if (user) {
@@ -169,21 +171,6 @@ const RestaurantMenu: React.FC = () => {
     }
   });
 
-  // Get menu items for a specific restaurant
-  const getRestaurantMenuItems = (restaurantId: string) => {
-    return menuItems.filter(item => item.restaurantId._id === restaurantId && item.isAvailable);
-  };
-
-  // Mock login function
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  // Mock logout function
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-
   // Add this helper inside the component
   const formatAddress = (address: any) => {
     if (!address) return '';
@@ -191,10 +178,8 @@ const RestaurantMenu: React.FC = () => {
     return [address.street, address.city, address.state, address.zipCode].filter(Boolean).join(', ');
   };
 
-  const handleRestaurantClick = (id: string) => {
-    navigate(`/restaurant/${id}`);
-  };
-
+  // Unused function - add to cart is handled inline
+  /*
   const handleAddToCart = (item: MenuItem) => {
     try {
       if (!item.isAvailable) {
@@ -219,6 +204,7 @@ const RestaurantMenu: React.FC = () => {
       toast.error('Failed to add item to cart. Please try again.');
     }
   };
+  */
 
   if (loading) {
     return (
@@ -264,7 +250,7 @@ const RestaurantMenu: React.FC = () => {
           <div className="hidden md:flex items-center mx-4 text-gray-700">
             <i className="fas fa-map-marker-alt text-orange-500 mr-2"></i>
             <div className="flex items-center space-x-2">
-              <span className="text-sm">{location}</span>
+            <span className="text-sm">{location}</span>
               <button
                 onClick={async () => {
                   console.log('Refreshing location...');

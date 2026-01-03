@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { restaurantAPI, menuAPI } from '../services/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
+// const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003'; // Unused
 
 interface Restaurant {
   _id: string;
@@ -49,10 +49,10 @@ const Index: React.FC = () => {
   const [sortOption, setSortOption] = useState('Rating');
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('Guest');
+  const [, setUserName] = useState('Guest');
   const [userInitial, setUserInitial] = useState('U');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -133,30 +133,11 @@ const Index: React.FC = () => {
     }
   });
 
-  // Get menu items for a specific restaurant
-  const getRestaurantMenuItems = (restaurantId: string) => {
-    return menuItems.filter(item => item.restaurantId._id === restaurantId && item.isAvailable);
-  };
-
-  // Mock login function
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  // Mock logout function
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-
   // Add this helper inside the component
   const formatAddress = (address: any) => {
     if (!address) return '';
     if (typeof address === 'string') return address;
     return [address.street, address.city, address.state, address.zipCode].filter(Boolean).join(', ');
-  };
-
-  const handleRestaurantClick = (id: string) => {
-    navigate(`/restaurant/${id}`);
   };
 
   const handleViewOrders = () => {
@@ -243,7 +224,7 @@ const Index: React.FC = () => {
           <div className="hidden md:flex items-center mx-4 text-gray-700">
             <i className="fas fa-map-marker-alt text-orange-500 mr-2"></i>
             <div className="flex items-center space-x-2">
-              <span className="text-sm">{location}</span>
+            <span className="text-sm">{location}</span>
               <button
                 onClick={async () => {
                   console.log('🔄 Refreshing location...');

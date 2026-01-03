@@ -13,30 +13,10 @@ function generateOrderNumber() {
   return `ORD-${randomNum}`;
 }
 
-function getAverageDeliveryTime(items) {
-  if (!items || items.length === 0) return 'N/A';
-  let totalMin = 0, totalMax = 0, count = 0;
-  items.forEach(item => {
-    if (item.deliveryTime) {
-      // deliveryTime should be a string like "30-45"
-      const [min, max] = item.deliveryTime.split('-').map(Number);
-      if (!isNaN(min) && !isNaN(max)) {
-        totalMin += min;
-        totalMax += max;
-        count++;
-      }
-    }
-  });
-  if (count === 0) return 'N/A';
-  const avgMin = Math.round(totalMin / count);
-  const avgMax = Math.round(totalMax / count);
-  return `${avgMin}-${avgMax} minutes`;
-}
+// Removed unused getAverageDeliveryTime function
 
 const OrderConf: React.FC = () => {
   const { items, getTotalPrice, clearCart } = useCart();
-  const [selectedAddress, setSelectedAddress] = useState(0);
-  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [deliveryType, setDeliveryType] = useState('asap');
   const [selectedTime, setSelectedTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('credit');

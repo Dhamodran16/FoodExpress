@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 const router = express.Router();
 
 // Get all orders
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     // TODO: Implement orders retrieval from database
     res.json([]);

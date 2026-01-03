@@ -39,7 +39,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // 404 handler for API routes
-app.use('/api/*', (req: Request, res: Response) => {
+app.use('/api/*', (_req: Request, res: Response) => {
   res.status(404).json({ message: 'API endpoint not found' });
 });
 

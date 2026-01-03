@@ -17,33 +17,12 @@ const CartDetails: React.FC = () => {
   const [averageEstimate, setAverageEstimate] = useState<number>(0);
   const [orderTime, setOrderTime] = useState<Date | null>(null);
 
-  function getAverageDeliveryTime(items: any[]) {
-    if (!items || items.length === 0) return 'N/A';
-    let totalMin = 0, totalMax = 0, count = 0;
-    items.forEach((item: any) => {
-      if (item.deliveryTime) {
-        // deliveryTime should be a string like "30-45"
-        const [min, max] = item.deliveryTime.split('-').map(Number);
-        if (!isNaN(min) && !isNaN(max)) {
-          totalMin += min;
-          totalMax += max;
-          count++;
-        }
-      }
-    });
-    if (count === 0) return 'N/A';
-    const avgMin = Math.round(totalMin / count);
-    const avgMax = Math.round(totalMax / count);
-    return `${avgMin}-${avgMax} minutes`;
-  }
-
   function generateOrderNumber() {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
     return `ORD-${randomNum}`;
   }
   // Order details - use order.orderNumber if available
   const orderNumber = order?.orderNumber || generateOrderNumber();
-  const estimatedDelivery = "30-45 minutes";
   
   // Calculate order totals from order.items if available, otherwise use cart items
   const orderItems = order?.items || items;
@@ -87,7 +66,7 @@ const CartDetails: React.FC = () => {
         
         // Auto-update status if order is still in processing/preparing/outForDelivery
         if (data.status && ['processing', 'preparing', 'outForDelivery'].includes(data.status)) {
-          const wasUpdated = await updateOrderStatusAutomatically(data);
+          await updateOrderStatusAutomatically(data);
           // If status was updated, the state is already set, no need to fetch again
         }
       } catch (error) {
@@ -139,10 +118,10 @@ const CartDetails: React.FC = () => {
     
     // Fallback: Calculate status based on time if backend status is generic
     if (orderTime && averageEstimate) {
-      const now = new Date();
+    const now = new Date();
       const prepEnd = new Date(orderTime.getTime() + (averageEstimate * 0.4) * 60000);
       const deliveryEnd = new Date(orderTime.getTime() + (averageEstimate * 0.8) * 60000);
-      const deliveredEnd = new Date(orderTime.getTime() + averageEstimate * 60000);
+    const deliveredEnd = new Date(orderTime.getTime() + averageEstimate * 60000);
       
       if (now < prepEnd) return 'preparing';
       if (now < deliveryEnd) return 'outForDelivery';
@@ -350,7 +329,7 @@ const CartDetails: React.FC = () => {
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                  
                   <div className="relative flex items-start mb-6">
-                    <div className="flex-shrink-0 mr-4">
+                        <div className="flex-shrink-0 mr-4">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
                         currentStatus === 'processing' ? 'bg-indigo-600' :
                         currentStatus === 'preparing' ? 'bg-yellow-500' :
@@ -363,15 +342,15 @@ const CartDetails: React.FC = () => {
                           currentStatus === 'outForDelivery' ? 'fa-motorcycle' :
                           'fa-check'
                         } text-white text-sm`}></i>
-                      </div>
-                    </div>
-                    <div>
+                          </div>
+                        </div>
+                        <div>
                       <p className="font-medium text-gray-800 capitalize">{currentStatus.replace(/([A-Z])/g, ' $1').trim()}</p>
                       <p className="text-sm text-gray-600">
                         {orderTime ? orderTime.toLocaleString() : 'Loading...'}
                       </p>
                     </div>
-                  </div>
+                        </div>
                  
                   <div className="relative flex items-start mb-6">
                     <div className="flex-shrink-0 mr-4">

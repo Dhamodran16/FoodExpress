@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatCurrency, DELIVERY_FEE, TAX_RATE } from '../utils/currency';
 
 const BuyFood: React.FC = () => {
-  const { items, updateQuantity, removeItem, getTotalPrice, clearCart } = useCart();
+  const { items, updateQuantity, removeItem } = useCart();
   const [couponCode, setCouponCode] = React.useState('');
   const [discount, setDiscount] = React.useState(0);
   const [isEmptyCart, setIsEmptyCart] = React.useState(false);
@@ -75,7 +75,7 @@ const BuyFood: React.FC = () => {
             {/* Cart Items List */}
             <div className="lg:w-2/3">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                {items.map((item, index) => (
+                {items.map((item) => (
                   <div key={item.id} className="p-6 border-b border-gray-100 last:border-b-0">
                     <div className="flex flex-col sm:flex-row">
                       {/* Item Image */}

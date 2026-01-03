@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useCart } from '../context/CartContext';
-import { FaStar, FaMotorcycle, FaMapMarkerAlt } from 'react-icons/fa';
-import { restaurantAPI, menuAPI, orderAPI } from '../services/api';
+import { restaurantAPI, menuAPI } from '../services/api';
 import { getAuth } from 'firebase/auth';
 
 interface Restaurant {

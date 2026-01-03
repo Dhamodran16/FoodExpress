@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 const router = express.Router();
 
 // Get user profile
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (_req: Request, res: Response) => {
   try {
     // TODO: Implement user profile retrieval from database
     res.json({});
