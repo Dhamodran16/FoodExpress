@@ -40,12 +40,17 @@ const menuItemSchema = new mongoose.Schema({
   },
   isAvailable: {
     type: Boolean,
-    default: true
+    default: true,
+    index: true
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
+// Compound indexes for common query patterns
+menuItemSchema.index({ restaurantId: 1, isAvailable: 1 }); // For restaurant menu queries
+menuItemSchema.index({ restaurantId: 1, category: 1 }); // For category filtering
 
 export default mongoose.model('MenuItem', menuItemSchema); 

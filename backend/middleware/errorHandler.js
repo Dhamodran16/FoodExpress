@@ -1,5 +1,60 @@
+// Helper function to get allowed origins (same logic as server.js)
+const getAllowedOrigins = () => {
+  // Check if FRONTEND_URL is explicitly set
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL.split(',').map(url => url.trim());
+  }
+  
+  // If NODE_ENV is production, use production URL
+  if (process.env.NODE_ENV === 'production') {
+    return ['https://foodexpress-frontend-tmf7.onrender.com'];
+  }
+  
+  // If running on Render (has RENDER env var or PORT is set by Render), use production URL
+  if (process.env.RENDER || (process.env.PORT && !process.env.NODE_ENV)) {
+    return ['https://foodexpress-frontend-tmf7.onrender.com'];
+  }
+  
+  // Default to development origins
+  return ['http://localhost:5173', 'http://localhost:5174'];
+};
+
 export const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err.stack || err);
+  // Enhanced error logging for production
+  const errorLog = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('user-agent'),
+    error: {
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      name: err.name,
+      status: err.status || 500
+    }
+  };
+
+  // Log to console with structured format
+  console.error('Error Details:', JSON.stringify(errorLog, null, 2));
+  
+  // Also log stack trace in development
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Stack Trace:', err.stack);
+  }
+
+  // Set CORS headers explicitly for all error responses
+  const allowedOrigins = getAllowedOrigins();
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (allowedOrigins.length > 0) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {

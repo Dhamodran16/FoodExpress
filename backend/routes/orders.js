@@ -43,11 +43,32 @@ router.get('/user/:userId',
   }
 );
 
-// Get orders by Firebase UID
+// Get orders by Firebase UID - Optimized with pagination
 router.get('/firebase/:firebaseUid', async (req, res, next) => {
   try {
-    const orders = await Order.find({ userFirebaseUid: req.params.firebaseUid }).sort({ createdAt: -1 });
-    res.json(orders);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Use lean() for better performance and select only needed fields
+    const orders = await Order.find({ userFirebaseUid: req.params.firebaseUid })
+      .select('items total status orderNumber createdAt paymentMethod deliveryAddress')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Order.countDocuments({ userFirebaseUid: req.params.firebaseUid });
+
+    res.json({
+      orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (err) {
     next(err);
   }

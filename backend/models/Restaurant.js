@@ -44,12 +44,18 @@ const restaurantSchema = new mongoose.Schema({
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
+    index: true
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    index: true
   }
 });
+
+// Compound indexes for common query patterns
+restaurantSchema.index({ isActive: 1, cuisine: 1 }); // For filtering active restaurants by cuisine
+restaurantSchema.index({ isActive: 1, rating: -1 }); // For sorting active restaurants by rating
 
 export default mongoose.model('Restaurant', restaurantSchema);

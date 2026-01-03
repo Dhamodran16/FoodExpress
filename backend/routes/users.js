@@ -4,20 +4,30 @@ import Order from '../models/order.js';
 
 const router = express.Router();
 
-// Get user profile by firebaseUid
+// Get user profile by firebaseUid - Optimized
 router.get('/:firebaseUid', async (req, res, next) => {
   try {
-    const user = await User.findOne({ firebaseUid: req.params.firebaseUid });
+    // Use select to only fetch needed fields, exclude password
+    const user = await User.findOne({ firebaseUid: req.params.firebaseUid })
+      .select('-password')
+      .lean();
+    
     if (!user) {
       const error = new Error('User not found');
       error.status = 404;
       throw error;
     }
+    
     // If no defaultAddress but has addresses, set the first as default
     if (!user.defaultAddress && user.addresses && user.addresses.length > 0) {
       const first = user.addresses[0];
       user.defaultAddress = [first.street, first.city, first.state, first.postalCode].filter(Boolean).join(', ');
-      await user.save();
+      // Update in database (convert back to mongoose document for save)
+      await User.updateOne(
+        { firebaseUid: req.params.firebaseUid },
+        { $set: { defaultAddress: user.defaultAddress } }
+      );
+      user.defaultAddress = user.defaultAddress;
     }
     res.json(user);
   } catch (err) {

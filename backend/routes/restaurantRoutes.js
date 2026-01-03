@@ -4,10 +4,15 @@ import mongoose from 'mongoose';
 
 const router = express.Router();
 
-// Get all restaurants
+// Get all restaurants - Optimized for production
 router.get('/', async (req, res, next) => {
   try {
-    const restaurants = await Restaurant.find();
+    // Use lean() for read-only queries (faster, returns plain JS objects)
+    // Only fetch active restaurants and select only needed fields
+    const restaurants = await Restaurant.find({ isActive: true })
+      .select('name cuisine rating deliveryTime minOrder distance image address isActive')
+      .lean()
+      .limit(100); // Limit results to prevent large payloads
     res.json(restaurants);
   } catch (err) {
     console.error('Error fetching restaurants:', err);
@@ -15,21 +20,24 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// Get a single restaurant by ID
-router.get('/:id', async (req, res) => {
+// Get a single restaurant by ID - Optimized
+router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid restaurant ID' });
     }
 
-    const restaurant = await Restaurant.findById(req.params.id);
+    const restaurant = await Restaurant.findById(req.params.id)
+      .select('name cuisine rating deliveryTime minOrder distance image address isActive')
+      .lean();
+    
     if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
     res.json(restaurant);
   } catch (err) {
     console.error('Error fetching restaurant:', err);
-    res.status(500).json({ message: 'Error fetching restaurant' });
+    next(err);
   }
 });
 

@@ -10,9 +10,9 @@ const addressSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-  firebaseUid: { type: String, required: true, unique: true },
+  firebaseUid: { type: String, required: true, unique: true, index: true },
   displayName: String,
-  email: { type: String, required: true },
+  email: { type: String, required: true, index: true },
   phone: String,
   photoURL: String,
   addresses: [addressSchema],
@@ -22,9 +22,12 @@ const userSchema = new mongoose.Schema({
   specialInstructions: String,
   preferredPaymentMethod: { type: String, enum: ['Google Pay', 'Apple Pay', 'Cash on Delivery', 'Credit/Debit Card'], default: 'Cash on Delivery' },
   password: { type: String, default: null },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now, index: true },
   updatedAt: { type: Date, default: Date.now },
 });
+
+// Compound index for common query patterns
+userSchema.index({ firebaseUid: 1, email: 1 });
 
 // Middleware to keep defaultAddress in sync with addresses array
 userSchema.pre('save', function(next) {
